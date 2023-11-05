@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # jogo_da_velha
 
 A new Flutter project.
@@ -28,3 +29,6 @@ the `lib/src/localization` directory.
 To support additional languages, please visit the tutorial on
 [Internationalizing Flutter
 apps](https://flutter.dev/docs/development/accessibility-and-localization/internationalization)
+=======
+# jogo_da_velha
+>>>>>>> f4633efc2f8c9233e8f7ff8285ed3f24baa40359
