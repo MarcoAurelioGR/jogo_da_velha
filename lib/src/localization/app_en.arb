@@ -1,0 +1,6 @@
+{
+  "appTitle": "jogo_da_velha",
+  "@appTitle": {
+    "description": "The title of the application"
+  }
+}
