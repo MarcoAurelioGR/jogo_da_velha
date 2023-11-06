@@ -1,14 +1,23 @@
 import 'dart:async';
+import 'dart:math';
 
-Future<List> botMove(matrix) async {
+Future<List<int>> botMove(List<List<String>> matrix) async {
   await Future.delayed(const Duration(milliseconds: 400));
+
+  final emptyCells = <List<int>>[];
 
   for (int i = 0; i < matrix.length; i++) {
     for (int j = 0; j < matrix[i].length; j++) {
       if (matrix[i][j].isEmpty) {
-        return [i, j];
+        emptyCells.add([i, j]);
       }
     }
+  }
+
+  if (emptyCells.isNotEmpty) {
+    final random = Random();
+    final randomMove = emptyCells[random.nextInt(emptyCells.length)];
+    return randomMove;
   }
 
   return [];
