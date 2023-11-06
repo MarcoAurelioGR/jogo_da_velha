@@ -1,9 +1,10 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings, depend_on_referenced_packages, use_key_in_widget_constructors, library_private_types_in_public_api
+// ignore_for_file: prefer_interpolation_to_compose_strings, depend_on_referenced_packages, use_key_in_widget_constructors, library_private_types_in_public_api, void_checks
 
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:jogo_da_velha/src/tela_inicial.dart';
+import 'package:jogo_da_velha/src/bot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -26,8 +27,10 @@ class _MyAppState extends State<IniciarGame> {
   String winner = '';
   String currentPlayer = '';
   int lengthMatrix = 0;
+  bool isGameInProgress = false;
 
   late List<List<String>> matrix;
+  late List botMoveResult;
 
   @override
   void initState() {
@@ -81,7 +84,6 @@ class _MyAppState extends State<IniciarGame> {
             ),
             ElevatedButton(
               onPressed: () {
-                saveGame; // Salvar o jogo antes de voltar para a tela inicial
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => TelaInicial()),
@@ -124,7 +126,18 @@ class _MyAppState extends State<IniciarGame> {
               margin: const EdgeInsets.all(0),
               child: ElevatedButton(
                 onPressed: () {
-                  onCellPressed(row, col);
+                  setState(() async {
+                    if (!isGameInProgress) {
+                      onCellPressed(row, col);
+
+                      if (currentPlayer == "Bot") {
+                        isGameInProgress = true;
+                        botMoveResult = await botMove(matrix);
+                        onCellPressed(botMoveResult[0], botMoveResult[1]);
+                        isGameInProgress = false;
+                      }
+                    }
+                  });
                 },
                 style: ButtonStyle(
                   elevation: const MaterialStatePropertyAll(0),
@@ -166,7 +179,9 @@ class _MyAppState extends State<IniciarGame> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd/MM/yyyy').format(now);
     String formattedTime = DateFormat('HH:mm').format(now);
-    final savedGame = '$namePlayer1,$namePlayer2,$winner,$formattedDate,$formattedTime\n';
+
+    final savedGame =
+        '$namePlayer1,$namePlayer2,$winner,$formattedDate,$formattedTime\n';
     final file = await patch;
 
     file.writeAsString(savedGame, mode: FileMode.append, flush: false);
@@ -179,44 +194,8 @@ class _MyAppState extends State<IniciarGame> {
           matrix[i][j] = '';
         }
       }
-      saveGame;
       currentPlayer = namePlayer1;
     });
-  }
-
-  bool checkWinner() {
-    // Verifica as linhas
-    for (int i = 0; i < lengthMatrix; i++) {
-      if (matrix[i][0] != '' &&
-          matrix[i].every((cell) => cell == matrix[i][0])) {
-        return true;
-      }
-    }
-
-    // Verifica as colunas
-    for (int i = 0; i < lengthMatrix; i++) {
-      if (matrix[0][i] != '' &&
-          List.generate(lengthMatrix, (j) => matrix[j][i])
-              .every((cell) => cell == matrix[0][i])) {
-        return true;
-      }
-    }
-
-    // Verifica a diagonal principal
-    if (matrix[0][0] != '' &&
-        List.generate(lengthMatrix, (i) => matrix[i][i])
-            .every((cell) => cell == matrix[0][0])) {
-      return true;
-    }
-
-    // Verifica a diagonal secundária
-    if (matrix[0][lengthMatrix - 1] != '' &&
-        List.generate(lengthMatrix, (i) => matrix[i][lengthMatrix - 1 - i])
-            .every((cell) => cell == matrix[0][lengthMatrix - 1])) {
-      return true;
-    }
-
-    return false;
   }
 
   void onCellPressed(int row, int col) {
@@ -224,11 +203,13 @@ class _MyAppState extends State<IniciarGame> {
       setState(() {
         matrix[row][col] = currentPlayer == namePlayer1 ? 'X' : 'O';
 
-        if (checkWinner()) {
+        if (checkWinner(matrix)) {
           winner = currentPlayer == namePlayer1 ? namePlayer1 : namePlayer2;
+          saveGame;
           showWinnerDialog(winner);
         } else if (matrix
             .every((row) => row.every((cell) => cell.isNotEmpty))) {
+          saveGame;
           showDrawDialog();
         } else {
           currentPlayer =
