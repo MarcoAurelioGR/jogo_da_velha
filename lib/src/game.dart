@@ -126,13 +126,12 @@ class _MyAppState extends State<IniciarGame> {
               margin: const EdgeInsets.all(0),
               child: ElevatedButton(
                 onPressed: () {
-                  setState(() async {
+                  setState(() {
                     if (!isGameInProgress) {
                       onCellPressed(row, col);
-
                       if (currentPlayer == "Bot") {
                         isGameInProgress = true;
-                        botMoveResult = await botMove(matrix);
+                        botMoveResult = botMove(matrix);
                         onCellPressed(botMoveResult[0], botMoveResult[1]);
                         isGameInProgress = false;
                       }
@@ -194,6 +193,7 @@ class _MyAppState extends State<IniciarGame> {
           matrix[i][j] = '';
         }
       }
+      isGameInProgress = false;
       currentPlayer = namePlayer1;
     });
   }
@@ -202,8 +202,9 @@ class _MyAppState extends State<IniciarGame> {
     if (matrix[row][col] == '') {
       setState(() {
         matrix[row][col] = currentPlayer == namePlayer1 ? 'X' : 'O';
-
+        print("Executando checkWinner!");
         if (checkWinner(matrix)) {
+          print("Ganhou!!");
           winner = currentPlayer == namePlayer1 ? namePlayer1 : namePlayer2;
           saveGame;
           showWinnerDialog(winner);
